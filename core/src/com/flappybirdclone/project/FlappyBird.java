@@ -40,6 +40,8 @@ public class FlappyBird extends ApplicationAdapter {
 	private Rectangle pipeTopRectangle;
 	private Rectangle pipeBottomRectangle;
 	private ShapeRenderer shape;
+	private Texture gameOver;
+	private BitmapFont message;
 
 
 	@Override
@@ -55,12 +57,15 @@ public class FlappyBird extends ApplicationAdapter {
 
 		pipeBottom = new Texture("cano_baixo.png");
 		pipeTop = new Texture("cano_topo.png");
-
+		gameOver = new Texture("game_over.png");
 
 		numberRandom = new Random();
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
-		font.getData().setScale(6);
+		font.getData().setScale(5);
+		message = new BitmapFont();
+		message.setColor(Color.WHITE);
+		message.getData().setScale(2);
 
 		cicleBird = new Circle();
 
@@ -88,33 +93,46 @@ public class FlappyBird extends ApplicationAdapter {
 			}
 		} else
 		{
-
 			velocityFall ++;
-			positionPipeWidth -= Gdx.graphics.getDeltaTime() * 200;
-
-
-			if (Gdx.input.justTouched())
-			{
-				velocityFall = -15;
-			}
-
 			if(positionInitialWidth > 0 || velocityFall < 0) {
 				positionInitialWidth -= velocityFall;
 			}
 
-			if(positionPipeWidth < -pipeTop.getWidth())
+			if (gameState == 1)
 			{
-				heightPipeRandomic = numberRandom.nextInt(400) - 200;
-				positionPipeWidth = widthDevice ;
-				point = false;
+				positionPipeWidth -= Gdx.graphics.getDeltaTime() * 200;
+
+				if (Gdx.input.justTouched())
+				{
+					velocityFall = -15;
+				}
+
+				if(positionPipeWidth < -pipeTop.getWidth())
+				{
+					heightPipeRandomic = numberRandom.nextInt(400) - 200;
+					positionPipeWidth = widthDevice ;
+					point = false;
+				}
+				if(positionPipeWidth < 80){
+					if(!point) {
+						point = true;
+						pointing++;
+					}
+				}
+
+			}else{
+				if(Gdx.input.justTouched())
+				{
+					gameState = 0;
+					pointing = 0;
+					velocityFall = 0;
+					positionInitialWidth = heightDevice / 2;
+					positionPipeWidth = widthDevice;
+				}
+
 			}
 
-			if(positionPipeWidth < 80){
-				if(!point) {
-					point = true;
-					pointing++;
-				}
-			}
+
 
 		}
 
@@ -124,6 +142,11 @@ public class FlappyBird extends ApplicationAdapter {
 		batch.draw(pipeBottom, positionPipeWidth, heightDevice / 2 - pipeBottom.getHeight() - betweenpipe / 2 + heightPipeRandomic);
 		batch.draw(bird[(int)variation], 80, positionInitialWidth );
 		font.draw(batch, String.valueOf(pointing), widthDevice / 2 - 20, heightDevice -50);
+		if(gameState == 2)
+		{
+			batch.draw(gameOver, widthDevice /2 - gameOver.getWidth() / 2, heightDevice / 2);
+			message.draw(batch, "Toque para Reiniciar", widthDevice /2 - message.getRegion().getRegionWidth() /2 , heightDevice /2 - message.getLineHeight() /2 );
+		}
 		batch.end();
 
 		cicleBird.set(80 + bird[0].getWidth() /2, positionInitialWidth + bird[0].getHeight() / 2 , bird[0].getWidth() / 2);
@@ -143,8 +166,9 @@ public class FlappyBird extends ApplicationAdapter {
 		shape.setColor(Color.RED);
 		shape.end();*/
 
-		if(Intersector.overlaps(cicleBird, pipeBottomRectangle) || Intersector.overlaps(cicleBird, pipeTopRectangle))
+		if(Intersector.overlaps(cicleBird, pipeBottomRectangle) || Intersector.overlaps(cicleBird, pipeTopRectangle) || positionInitialWidth <= 0 || positionInitialWidth >= heightDevice)
 		{
+			gameState = 2;
 
 		}
 
